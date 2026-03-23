@@ -1,0 +1,43 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="#f0f0f0"/>
+  
+  <!-- Face -->
+  <circle cx="100" cy="85" r="35" fill="#fdbcb4"/>
+  
+  <!-- Hair -->
+  <path d="M65 60 Q100 40 135 60 Q140 50 135 45 Q100 25 65 45 Q60 50 65 60" fill="#2c1810"/>
+  
+  <!-- Glasses -->
+  <circle cx="88" cy="80" r="12" fill="none" stroke="#333" stroke-width="2"/>
+  <circle cx="112" cy="80" r="12" fill="none" stroke="#333" stroke-width="2"/>
+  <line x1="100" y1="80" x2="100" y2="80" stroke="#333" stroke-width="2"/>
+  
+  <!-- Eyes -->
+  <circle cx="88" cy="80" r="3" fill="#333"/>
+  <circle cx="112" cy="80" r="3" fill="#333"/>
+  
+  <!-- Nose -->
+  <ellipse cx="100" cy="88" rx="2" ry="3" fill="#f4a6a0"/>
+  
+  <!-- Mouth -->
+  <path d="M95 95 Q100 100 105 95" fill="none" stroke="#d63384" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Shirt -->
+  <rect x="70" y="140" width="60" height="60" fill="#1e3a8a"/>
+  
+  <!-- Collar -->
+  <polygon points="85,140 100,150 115,140 115,145 100,155 85,145" fill="white"/>
+  
+  <!-- Tie -->
+  <polygon points="98,150 102,150 104,170 96,170" fill="#dc2626"/>
+  
+  <!-- Headset -->
+  <path d="M65 70 Q60 65 60 75 Q60 85 65 80" fill="none" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+  <path d="M135 70 Q140 65 140 75 Q140 85 135 80" fill="none" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+  <path d="M65 70 Q100 50 135 70" fill="none" stroke="#4f46e5" stroke-width="3"/>
+  
+  <!-- Microphone -->
+  <circle cx="55" cy="90" r="4" fill="#4f46e5"/>
+  <line x1="59" y1="90" x2="80" y2="85" stroke="#4f46e5" stroke-width="2"/>
+</svg>

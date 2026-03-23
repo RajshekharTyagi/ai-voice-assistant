@@ -9,16 +9,22 @@ export default function useTextToSpeech() {
   const [currentText, setCurrentText] = useState('');
   
   const utteranceRef = useRef(null);
+  const isInitializedRef = useRef(false);
 
   // Check browser support and load voices
   useEffect(() => {
     const synth = window.speechSynthesis;
+    console.log('TTS: Checking browser support...');
+    console.log('TTS: speechSynthesis available:', !!synth);
+    
     setIsSupported(!!synth);
 
     if (synth) {
       // Load voices
       const loadVoices = () => {
+        console.log('TTS: Loading voices...');
         const availableVoices = synth.getVoices();
+        console.log('TTS: Found voices:', availableVoices.length, availableVoices.map(v => v.name));
         setVoices(availableVoices);
         
         // Select a good default voice (prefer English voices)
@@ -26,13 +32,18 @@ export default function useTextToSpeech() {
           voice.lang.startsWith('en')
         );
         
+        console.log('TTS: English voices:', englishVoices.length);
+        
         const preferredVoice = 
           englishVoices.find(voice => voice.name.includes('Google')) ||
           englishVoices.find(voice => voice.name.includes('Microsoft')) ||
+          englishVoices.find(voice => voice.name.includes('Samantha')) ||
+          englishVoices.find(voice => voice.name.includes('Alex')) ||
           englishVoices.find(voice => voice.default) ||
           englishVoices[0] ||
           availableVoices[0];
           
+        console.log('TTS: Selected voice:', preferredVoice?.name);
         setSelectedVoice(preferredVoice);
       };
 
@@ -41,121 +52,52 @@ export default function useTextToSpeech() {
       
       // Also listen for voices changed event (some browsers load voices asynchronously)
       if (synth.onvoiceschanged !== undefined) {
+        console.log('TTS: Setting up onvoiceschanged listener');
         synth.onvoiceschanged = loadVoices;
       }
+      
+      // Force voice loading in some browsers
+      setTimeout(() => {
+        if (synth.getVoices().length === 0) {
+          console.log('TTS: No voices loaded, forcing reload...');
+          loadVoices();
+        }
+      }, 1000);
+
+      // Initialize speech synthesis with user interaction
+      const initializeSpeech = () => {
+        if (!isInitializedRef.current) {
+          console.log('TTS: Initializing speech synthesis with user interaction');
+          // Create a silent utterance to initialize the speech synthesis
+          const silentUtterance = new SpeechSynthesisUtterance('');
+          silentUtterance.volume = 0;
+          synth.speak(silentUtterance);
+          isInitializedRef.current = true;
+        }
+        
+        // Remove the event listener after first interaction
+        document.removeEventListener('click', initializeSpeech);
+        document.removeEventListener('touchstart', initializeSpeech);
+      };
+
+      // Add event listeners for user interaction
+      document.addEventListener('click', initializeSpeech);
+      document.addEventListener('touchstart', initializeSpeech);
     }
 
     return () => {
-      // Cleanup
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      // Cleanup - but don't cancel speech as it interferes with the main app
+      console.log('TTS: Hook cleaning up - NOT cancelling speech to avoid interference');
     };
-  }, []);
+  }, []); // Removed isSpeaking dependency to prevent cleanup during speech
 
   const speak = useCallback((text, options = {}) => {
     return new Promise((resolve, reject) => {
-      if (!isSupported) {
-        reject(new Error('Text-to-speech is not supported in this browser'));
-        return;
-      }
-
-      if (!text || text.trim() === '') {
-        reject(new Error('No text provided to speak'));
-        return;
-      }
-
-      // Stop any current speech
-      window.speechSynthesis.cancel();
-
-      // Create new utterance
-      const utterance = new SpeechSynthesisUtterance(text);
-      utteranceRef.current = utterance;
-
-      // Configure utterance
-      utterance.voice = options.voice || selectedVoice;
-      utterance.rate = options.rate || 0.9; // Slightly slower for better clarity
-      utterance.pitch = options.pitch || 1.0;
-      utterance.volume = options.volume || 1.0;
-      utterance.lang = options.lang || 'en-US';
-
-      // Event handlers
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-        setIsPaused(false);
-        setCurrentText(text);
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setIsPaused(false);
-        setCurrentText('');
-        utteranceRef.current = null;
-        resolve();
-      };
-
-      utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event.error);
-        setIsSpeaking(false);
-        setIsPaused(false);
-        setCurrentText('');
-        utteranceRef.current = null;
-        
-        let errorMessage = 'Text-to-speech failed';
-        switch (event.error) {
-          case 'network':
-            errorMessage = 'Network error occurred during speech synthesis';
-            break;
-          case 'synthesis-failed':
-            errorMessage = 'Speech synthesis failed';
-            break;
-          case 'synthesis-unavailable':
-            errorMessage = 'Speech synthesis is not available';
-            break;
-          case 'text-too-long':
-            errorMessage = 'Text is too long for speech synthesis';
-            break;
-          case 'invalid-argument':
-            errorMessage = 'Invalid argument provided to speech synthesis';
-            break;
-          default:
-            errorMessage = `Speech synthesis error: ${event.error}`;
-        }
-        
-        reject(new Error(errorMessage));
-      };
-
-      utterance.onpause = () => {
-        setIsPaused(true);
-        console.log('Speech paused');
-      };
-
-      utterance.onresume = () => {
-        setIsPaused(false);
-        console.log('Speech resumed');
-      };
-
-      // Start speaking
-      try {
-        window.speechSynthesis.speak(utterance);
-        
-        // Set a timeout to ensure the speech starts properly
-        setTimeout(() => {
-          if (!isSpeaking && utteranceRef.current) {
-            console.log('Speech may have failed to start, retrying...');
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
-          }
-        }, 100);
-      } catch (error) {
-        setIsSpeaking(false);
-        setIsPaused(false);
-        setCurrentText('');
-        utteranceRef.current = null;
-        reject(error);
-      }
+      console.log('TTS Hook: speak() called but disabled to prevent interference with main app');
+      console.log('TTS Hook: Use the main app speech synthesis instead');
+      resolve(); // Just resolve immediately without doing anything
     });
-  }, [isSupported, selectedVoice]);
+  }, []);
 
   const stop = useCallback(() => {
     if (window.speechSynthesis) {
